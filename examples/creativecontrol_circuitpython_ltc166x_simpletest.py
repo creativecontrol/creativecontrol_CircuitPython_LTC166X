@@ -7,14 +7,16 @@ import time
 import board
 import creativecontrol_circuitpython_ltc166x
 
-ltc1665 = creativecontrol_circuitpython_ltc166x.LTC1665(cs=board.GP1, sck=board.GP2, mosi=board.GP3, debug=True)
+ltc1665 = creativecontrol_circuitpython_ltc166x.LTC1665(
+    csld=board.GP1, sck=board.GP2, mosi=board.GP3, debug=True
+)
 
-dac_values = [0, 3, 7, 15, 31, 63, 127, 255]
+dac_values = [1, 3, 7, 15, 31, 63, 127, 255]
 
 while True:
-    print('writing dac values ', time.monotonic())
+    print("writing dac values ", time.monotonic())
     ltc1665.write_dac_values(dac_values)
     time.sleep(4)
-    print('off')
-    ltc1665.write_dac_values([0]*8)
+    print("off")
+    ltc1665.write_dac_values([0] * 8)
     time.sleep(4)

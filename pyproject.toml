@@ -11,14 +11,14 @@ requires = [
 ]
 
 [project]
-name = "circuitpython-creativecontrol-circuitpython-ltc166x"
+name = "creativecontrol-circuitpython-ltc166x"
 description = "CircuitPython library for control of LTC166X 8-bit and 10-bit DACs."
 version = "0.0.0+auto.0"
 readme = "README.rst"
 authors = [
     {name = "creativecontrol", email = "t@creativecontrol.cc"}
 ]
-urls = {Homepage = "https://github.com/creativecontrol/CircuitPython_creativecontrol_CircuitPython_LTC166X"}
+urls = {Homepage = "https://github.com/creativecontrol/creativecontrol_CircuitPython_LTC166X"}
 keywords = [
     "adafruit",
     "blinka",

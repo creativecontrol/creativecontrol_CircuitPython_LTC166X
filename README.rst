@@ -18,8 +18,15 @@ Introduction
     :target: https://github.com/psf/black
     :alt: Code Style: Black
 
-CircuitPython library for control of LTC166X 8-bit and 10-bit DACs.
+CircuitPython library for control of LTC1665 8-bit and LTC1660 10-bit DACs from Linear Technologies.
 
+`LTC166X datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/166560fa.pdf.`_
+
+Multiple LTC1665/LTC1660’s can be controlled from a single 3-wire serial port (i.e., SCK, DIN and CS/LD) by
+using the included “daisy-chain” facility. A series of *n* chips is configured by connecting each DOUT (except the
+last) to DIN of the next chip, forming a single 16n-bit shift register. The SCK and CS/LD signals are common
+to all chips in the chain. In use, CS/LD is held low while *n* 16-bit words are clocked to DIN of the first chip; CS/LD
+is then pulled high, updating all of them simultaneously.
 
 Dependencies
 =============
@@ -36,24 +43,20 @@ or individual libraries can be installed using
 
 Installing from PyPI
 =====================
-.. note:: This library is not available on PyPI yet. Install documentation is included
-   as a standard element. Stay tuned for PyPI availability!
-
-.. todo:: Remove the above note if PyPI version is/will be available at time of release.
 
 On supported GNU/Linux systems like the Raspberry Pi, you can install the driver locally `from
-PyPI <https://pypi.org/project/circuitpython-creativecontrol-circuitpython-ltc166x/>`_.
+PyPI <https://pypi.org/project/creativecontrol-circuitpython-ltc166x/>`_.
 To install for current user:
 
 .. code-block:: shell
 
-    pip3 install circuitpython-creativecontrol-circuitpython-ltc166x
+    pip3 install creativecontrol-circuitpython-ltc166x
 
 To install system-wide (this may be required in some cases):
 
 .. code-block:: shell
 
-    sudo pip3 install circuitpython-creativecontrol-circuitpython-ltc166x
+    sudo pip3 install creativecontrol-circuitpython-ltc166x
 
 To install in a virtual environment in your current project:
 
@@ -62,7 +65,7 @@ To install in a virtual environment in your current project:
     mkdir project-name && cd project-name
     python3 -m venv .venv
     source .env/bin/activate
-    pip3 install circuitpython-creativecontrol-circuitpython-ltc166x
+    pip3 install creativecontrol-circuitpython-ltc166x
 
 Installing to a Connected CircuitPython Device with Circup
 ==========================================================
@@ -90,12 +93,26 @@ Or the following command to update an existing version:
 Usage Example
 =============
 
-.. todo:: Add a quick, simple example. It and other examples should live in the
-examples folder and be included in docs/examples.rst.
+.. code-block:: shell
+
+   import time
+   import board
+   import creativecontrol_circuitpython_ltc166x
+
+   ltc1665 = creativecontrol_circuitpython_ltc166x.LTC1665(cs=board.GP1, sck=board.GP2, mosi=board.GP3, debug=True)
+
+   dac_values = [1, 3, 7, 15, 31, 63, 127, 255]
+
+   while True:
+        print('writing dac values ', time.monotonic())
+        ltc1665.write_dac_values(dac_values)
+        time.sleep(4)
+        print('off')
+        ltc1665.write_dac_values([0]*8)
+        time.sleep(4)
 
 Documentation
 =============
-API documentation for this library can be found on `Read the Docs <https://circuitpython-creativecontrol-circuitpython-ltc166x.readthedocs.io/>`_.
 
 For information on building library documentation, please check out
 `this guide <https://learn.adafruit.com/creating-and-sharing-a-circuitpython-library/sharing-our-docs-on-readthedocs#sphinx-5-1>`_.

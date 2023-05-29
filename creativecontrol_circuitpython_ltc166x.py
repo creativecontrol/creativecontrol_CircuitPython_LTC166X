@@ -31,19 +31,13 @@ shift register. The SCK and CS/LD signals are common
 to all chips in the chain. In use, CS/LD is held low while m
 16-bit words are clocked to DIN of the first chip; CS/LD
 is then pulled high, updating all of them simultaneously.
-.. todo:: Add links to any specific hardware product page(s), or category page(s).
-  Use unordered list & hyperlink rST inline format: "* `Link Text <url>`_"
 
 **Software and Dependencies:**
 
 * Adafruit CircuitPython firmware for the supported boards:
   https://circuitpython.org/downloads
 
-.. todo:: Uncomment or remove the Bus Device and/or the Register library dependencies
-  based on the library's use of either.
-
-# * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
-# * Adafruit's Register library: https://github.com/adafruit/Adafruit_CircuitPython_Register
+* Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 """
 
 import microcontroller
@@ -52,9 +46,12 @@ import digitalio
 from adafruit_bus_device.spi_device import SPIDevice
 
 __version__ = "0.0.0+auto.0"
-__repo__ = "https://github.com/creativecontrol/creativecontrol_CircuitPython_LTC166X.git"
+__repo__ = (
+    "https://github.com/creativecontrol/creativecontrol_CircuitPython_LTC166X.git"
+)
 
-class LTC166X():
+
+class LTC166X:
     """
     LTC166X 8 or 10-bit digital to analog converter.  This class has a similar
     interface as the CircuitPython AnalogOut class and can be used in place
@@ -64,28 +61,23 @@ class LTC166X():
     """
 
     def __init__(
-            self,
-            sck: microcontroller.Pin,
-            mosi: microcontroller.Pin,
-            cs: microcontroller.Pin,
-            bits: int = None,
-            debug: bool = False) -> None:
-        """
-        """
+        self,
+        sck: microcontroller.Pin,
+        mosi: microcontroller.Pin,
+        csld: microcontroller.Pin,
+        debug: bool = False,
+    ) -> None:
+        """ """
         self._num_channels = 8
         self._data_bits = 12
-        self._cs = digitalio.DigitalInOut(cs)
+        self._cs = digitalio.DigitalInOut(csld)
         self._spi = SPI(clock=sck, MOSI=mosi)
-        self._bit_depth = bits or self.get_bit_depth()
+        self._bit_depth = None
         self._range = pow(2, self._bit_depth)
-        self._device = SPIDevice(self._spi, self._cs, baudrate=5000000, polarity=0, phase=0)
+        self._device = SPIDevice(
+            self._spi, self._cs, baudrate=5000000, polarity=0, phase=0
+        )
         self._debug = debug
-
-    def get_bit_depth(self):
-        """
-        Placeholder. If not using a subclass to define bit depth, must define on initialization.
-        """
-        return None
 
     def get_device_range(self):
         """
@@ -104,12 +96,12 @@ class LTC166X():
                 assert 0 <= value <= self._range
                 out = 0x0000
                 # Set the top 4 bits to the address based on array position.
-                out |= (idx%self._num_channels)+1 << self._data_bits
+                out |= (idx % self._num_channels) + 1 << self._data_bits
                 # Set the next n bits based on bit depth.
                 out |= value << (self._data_bits - self._bit_depth)
-                out_bytes = out.to_bytes(2, 'big')
+                out_bytes = out.to_bytes(2, "big")
                 if self._debug:
-                    print(f'{idx} {hex(out)} {out_bytes} {len(out_bytes)}')
+                    print(f"{idx} {hex(out)} {out_bytes} {len(out_bytes)}")
                 spi.write(out_bytes)
 
 
@@ -117,13 +109,29 @@ class LTC1660(LTC166X):
     """
     Extended class for 10bit Octal DAC
     """
-    def get_bit_depth(self):
-        return 10
+
+    def __init__(
+        self,
+        sck: microcontroller.Pin,
+        mosi: microcontroller.Pin,
+        csld: microcontroller.Pin,
+        debug: bool = False,
+    ) -> None:
+        super().__init__(sck, mosi, csld, debug)
+        self._bit_depth = 10
 
 
 class LTC1665(LTC166X):
     """
     Extended class for 8bit Octal DAC
     """
-    def get_bit_depth(self):
-        return 8
+
+    def __init__(
+        self,
+        sck: microcontroller.Pin,
+        mosi: microcontroller.Pin,
+        csld: microcontroller.Pin,
+        debug: bool = False,
+    ) -> None:
+        super().__init__(sck, mosi, csld, debug)
+        self._bit_depth = 8
