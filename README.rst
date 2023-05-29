@@ -20,7 +20,7 @@ Introduction
 
 CircuitPython library for control of LTC1665 8-bit and LTC1660 10-bit DACs from Linear Technologies.
 
-`LTC166X datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/166560fa.pdf.`_
+`LTC166X datasheet <https://www.analog.com/media/en/technical-documentation/data-sheets/166560fa.pdf>`_
 
 Multiple LTC1665/LTC1660’s can be controlled from a single 3-wire serial port (i.e., SCK, DIN and CS/LD) by
 using the included “daisy-chain” facility. A series of *n* chips is configured by connecting each DOUT (except the

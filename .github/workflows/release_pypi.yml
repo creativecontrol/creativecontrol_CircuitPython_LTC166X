@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Run PyPI Release CI workflow
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
-      # uses: adafruit/workflows-circuitpython-libs/release-pypi@main
+      # uses: pypa/gh-action-pypi-publish@release/v1
       # with:
-      #  pypi-username: __token__
-      #  pypi-password: ${{ secrets.PYPI_API_TOKEN }}
+      #   password: ${{ secrets.PYPI_API_TOKEN }}
+      uses: adafruit/workflows-circuitpython-libs/release-pypi@main
+      with:
+        pypi-username: __token__
+        pypi-password: ${{ secrets.PYPI_API_TOKEN }}
