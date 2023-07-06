@@ -49,3 +49,6 @@ _build
 
 # PYPI Dist
 dist
+
+# VS Code Workspace
+*.code-workspace

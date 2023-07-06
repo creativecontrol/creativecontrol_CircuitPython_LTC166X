@@ -14,8 +14,14 @@ CircuitPython library for control of LTC166X 8-bit and 10-bit DACs.
 Implementation Notes
 --------------------
 
-*
-http://www.kerrywong.com/2010/05/02/a-library-for-ltc1665ltc1660/
+**TODO:**
+
+* Add Sleep and Wake control
+* Add example for multiple chained DACs
+
+
+* Influenced by
+  http://www.kerrywong.com/2010/05/02/a-library-for-ltc1665ltc1660/
 
 **Hardware:**
 
@@ -51,26 +57,41 @@ __repo__ = (
 )
 
 
+DAC_WAKE = 0x00
+DAC_A = 0x01
+DAC_B = 0x02
+DAC_C = 0x03
+DAC_D = 0x04
+DAC_E = 0x05
+DAC_F = 0x06
+DAC_G = 0x07
+DAC_H = 0x08
+DAC_SLEEP = 0x0E
+DAC_ALL = 0x0F
+
+
 class LTC166X:
     """
-    LTC166X 8 or 10-bit digital to analog converter.  This class has a similar
-    interface as the CircuitPython AnalogOut class and can be used in place
-    of that module.
-    :param ~busio.SPI spi: The SPI bus.
-    :param int address: The address of the device if set differently from the default.
+    LTC166X 8 or 10-bit digital to analog converter.
+
+    :param microcontroller.Pin sck: SPI clock pin.
+    :param microcontroller.Pin mosi: SPI output pin.
+    :param microcontroller.Pin csel: SPI chip select pin.
+    :param int bits: DAC bit depth.
+    :param bool debug: Debug the SPI output values.
     """
 
     def __init__(
         self,
         sck: microcontroller.Pin,
         mosi: microcontroller.Pin,
-        csld: microcontroller.Pin,
+        csel: microcontroller.Pin,
         debug: bool = False,
     ) -> None:
         """ """
         self._num_channels = 8
         self._data_bits = 12
-        self._cs = digitalio.DigitalInOut(csld)
+        self._cs = digitalio.DigitalInOut(csel)
         self._spi = SPI(clock=sck, MOSI=mosi)
         self._bit_depth = None
         self._range = pow(2, self._bit_depth)
@@ -79,30 +100,80 @@ class LTC166X:
         )
         self._debug = debug
 
+    def get_bit_depth(self):
+        """
+        Return bit_depth based on device used.
+        """
+        return self._bit_depth
+
     def get_device_range(self):
         """
         Return device range based on device used.
         """
         return self._range
 
-    def write_dac_values(self, values):
+    def sleep(self, dac):
         """
-        Write to DAC using adafruit_bus_device.
+        Put DAC in sleep mode.
+        """
+
+    def wake_no_change(self, dac):
+        """
+        Wake DAC with no value updates.
+        """
+
+    def write_chained_dac_values(self, dacs: list):
+        """
+        Write list of values to a chain of DACs. All lists should be the same length.
+
+        :param dacs: list of lists of values from 0 to device range. Each list represents a DAC.
+
+        [[DAC 1], [DAC 2], [DAC 3], etc.]
+        """
+        for index, _ in enumerate(dacs[0]):
+            dac_chain_list = [dac[index] for dac in dacs]
+            with self._device as spi:
+                for chain_index, chain_value in enumerate(dac_chain_list):
+                    self.write_value_to_spi(spi, chain_value, chain_index + 1)
+
+    def write_dac_value(self, value: int, address: int):
+        """
+        Write a single DAC value.
+
+        :param value: DAC value from 0 to device range.
+        :param address: DAC address DAC A = 1 ... DAC H = 8 ... ALL DACs = 15
+        """
+        with self._device as spi:
+            self.write_value_to_spi(spi, value, address)
+
+    def write_dac_values(self, values: list):
+        """
+        Write to list of values to DAC.
 
         :param values: list of values from 0 to device range.
         """
-        with self._device as spi:
-            for idx, value in enumerate(values):
-                assert 0 <= value <= self._range
-                out = 0x0000
-                # Set the top 4 bits to the address based on array position.
-                out |= (idx % self._num_channels) + 1 << self._data_bits
-                # Set the next n bits based on bit depth.
-                out |= value << (self._data_bits - self._bit_depth)
-                out_bytes = out.to_bytes(2, "big")
-                if self._debug:
-                    print(f"{idx} {hex(out)} {out_bytes} {len(out_bytes)}")
-                spi.write(out_bytes)
+        for index, value in enumerate(values):
+            with self._device as spi:
+                self.write_value_to_spi(spi, value, index + 1)
+
+    def write_value_to_spi(self, spi: SPIDevice, value: int, address: int):
+        """
+        Write a single value to SPI.
+
+        :param spi: SPIDevice.
+        :param value: DAC value from 0 to device range.
+        :param address: DAC address DAC A = 1 ... DAC H = 8 ... ALL DACs = 15
+        """
+        assert 0 <= value <= self._range
+        out = 0x0000
+        # Set the top 4 bits to the address based on array position.
+        out |= address << self._data_bits
+        # Set the next n bits based on bit depth.
+        out |= value << (self._data_bits - self._bit_depth)
+        out_bytes = out.to_bytes(2, "big")
+        if self._debug:
+            print(f"{address} {hex(out)} {out_bytes} {len(out_bytes)}")
+        spi.write(out_bytes)
 
 
 class LTC1660(LTC166X):
