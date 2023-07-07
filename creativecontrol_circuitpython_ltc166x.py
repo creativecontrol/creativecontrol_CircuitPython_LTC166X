@@ -57,19 +57,6 @@ __repo__ = (
 )
 
 
-DAC_WAKE = 0x00
-DAC_A = 0x01
-DAC_B = 0x02
-DAC_C = 0x03
-DAC_D = 0x04
-DAC_E = 0x05
-DAC_F = 0x06
-DAC_G = 0x07
-DAC_H = 0x08
-DAC_SLEEP = 0x0E
-DAC_ALL = 0x0F
-
-
 class LTC166X:
     """
     LTC166X 8 or 10-bit digital to analog converter.
@@ -77,9 +64,20 @@ class LTC166X:
     :param microcontroller.Pin sck: SPI clock pin.
     :param microcontroller.Pin mosi: SPI output pin.
     :param microcontroller.Pin csel: SPI chip select pin.
-    :param int bits: DAC bit depth.
     :param bool debug: Debug the SPI output values.
     """
+
+    DAC_WAKE = 0x00
+    DAC_A = 0x01
+    DAC_B = 0x02
+    DAC_C = 0x03
+    DAC_D = 0x04
+    DAC_E = 0x05
+    DAC_F = 0x06
+    DAC_G = 0x07
+    DAC_H = 0x08
+    DAC_SLEEP = 0x0E
+    DAC_ALL = 0x0F
 
     def __init__(
         self,
@@ -93,7 +91,7 @@ class LTC166X:
         self._data_bits = 12
         self._cs = digitalio.DigitalInOut(csel)
         self._spi = SPI(clock=sck, MOSI=mosi)
-        self._bit_depth = None
+        self._bit_depth = 8
         self._range = pow(2, self._bit_depth)
         self._device = SPIDevice(
             self._spi, self._cs, baudrate=5000000, polarity=0, phase=0
@@ -122,26 +120,42 @@ class LTC166X:
         Wake DAC with no value updates.
         """
 
-    def write_chained_dac_values(self, dacs: list):
+    def write_chained_dac_values(self, dac_values: list):
         """
         Write list of values to a chain of DACs. All lists should be the same length.
+        Do not update if value is < 0. This allows for comparison of
+        update frames and only updating if value has changed.
 
-        :param dacs: list of lists of values from 0 to device range. Each list represents a DAC.
+        :param list dac_values: list of lists of values from 0 to device range.
+        Each list represents a DAC.
 
         [[DAC 1], [DAC 2], [DAC 3], etc.]
         """
-        for index, _ in enumerate(dacs[0]):
-            dac_chain_list = [dac[index] for dac in dacs]
+        for index, _ in enumerate(dac_values[0]):
+            dac_chain_list = [dac[index] for dac in dac_values]
             with self._device as spi:
                 for chain_index, chain_value in enumerate(dac_chain_list):
-                    self.write_value_to_spi(spi, chain_value, chain_index + 1)
+                    if chain_value >= 0:
+                        self.write_value_to_spi(spi, chain_value, chain_index + 1)
+
+    def write_chained_dac_value(self, value: list, address: int, chain_length: int):
+        """
+        Write a single DAC value to a chain.
+
+        :param list value: DAC value from 0 to device range.
+        :param int address: DAC address DAC A = 1 ... DAC H = 8 ... ALL DACs = 15.
+        :param int chain_length: Number of DACs in the chain.
+        """
+        with self._device as spi:
+            for _ in enumerate(chain_length):
+                self.write_value_to_spi(spi, value, address)
 
     def write_dac_value(self, value: int, address: int):
         """
         Write a single DAC value.
 
-        :param value: DAC value from 0 to device range.
-        :param address: DAC address DAC A = 1 ... DAC H = 8 ... ALL DACs = 15
+        :param int value: DAC value from 0 to device range.
+        :param int address: DAC address DAC A = 1 ... DAC H = 8 ... ALL DACs = 15.
         """
         with self._device as spi:
             self.write_value_to_spi(spi, value, address)
@@ -149,20 +163,23 @@ class LTC166X:
     def write_dac_values(self, values: list):
         """
         Write to list of values to DAC.
+        Do not update if value is < 0. This allows for comparison of
+        update frames and only updating if value has changed.
 
-        :param values: list of values from 0 to device range.
+        :param list values: list of values from 0 to device range.
         """
         for index, value in enumerate(values):
             with self._device as spi:
-                self.write_value_to_spi(spi, value, index + 1)
+                if value >= 0:
+                    self.write_value_to_spi(spi, value, index + 1)
 
     def write_value_to_spi(self, spi: SPIDevice, value: int, address: int):
         """
         Write a single value to SPI.
 
-        :param spi: SPIDevice.
-        :param value: DAC value from 0 to device range.
-        :param address: DAC address DAC A = 1 ... DAC H = 8 ... ALL DACs = 15
+        :param SPIDevice spi: adafruit_bus_device.spi_device.
+        :param int value: DAC value from 0 to device range.
+        :param int address: DAC address DAC A = 1 ... DAC H = 8 ... ALL DACs = 15.
         """
         assert 0 <= value <= self._range
         out = 0x0000
@@ -185,10 +202,10 @@ class LTC1660(LTC166X):
         self,
         sck: microcontroller.Pin,
         mosi: microcontroller.Pin,
-        csld: microcontroller.Pin,
+        csel: microcontroller.Pin,
         debug: bool = False,
-    ) -> None:
-        super().__init__(sck, mosi, csld, debug)
+    ):
+        super().__init__(sck, mosi, csel, debug)
         self._bit_depth = 10
 
 
@@ -201,8 +218,8 @@ class LTC1665(LTC166X):
         self,
         sck: microcontroller.Pin,
         mosi: microcontroller.Pin,
-        csld: microcontroller.Pin,
+        csel: microcontroller.Pin,
         debug: bool = False,
-    ) -> None:
-        super().__init__(sck, mosi, csld, debug)
+    ):
+        super().__init__(sck, mosi, csel, debug)
         self._bit_depth = 8
