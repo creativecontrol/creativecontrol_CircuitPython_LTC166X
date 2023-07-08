@@ -99,7 +99,7 @@ Usage Example
    import board
    import creativecontrol_circuitpython_ltc166x
 
-   ltc1665 = creativecontrol_circuitpython_ltc166x.LTC1665(cs=board.GP1, sck=board.GP2, mosi=board.GP3, debug=True)
+   ltc1665 = creativecontrol_circuitpython_ltc166x.LTC1665(csel=board.GP1, sck=board.GP2, mosi=board.GP3, debug=True)
 
    dac_values = [1, 3, 7, 15, 31, 63, 127, 255]
 

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Unlicense
 
 """
-Only update value if it has changed.
+Write random values to all DAC channels from a list. Only update value if it has changed.
 """
 
 import random

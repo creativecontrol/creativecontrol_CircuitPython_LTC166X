@@ -13,12 +13,14 @@ CircuitPython library for control of LTC166X 8-bit and 10-bit DACs.
 
 Implementation Notes
 --------------------
+The library provides options for storing all DAC values in a list
+or a list of lists for DAC daisy-chains.
+A channel may be marked for no update using a negative number (i.e. -1)
+This value will be skipped or a no change message will be sent in the case of a daisy-change.
 
 **TODO:**
 
 * Add Sleep and Wake control
-* Add example for multiple chained DACs
-
 
 * Influenced by
   http://www.kerrywong.com/2010/05/02/a-library-for-ltc1665ltc1660/
@@ -127,16 +129,20 @@ class LTC166X:
         update frames and only updating if value has changed.
 
         :param list dac_values: list of lists of values from 0 to device range.
-        Each list represents a DAC.
 
+        Each list represents a DAC's channel values.
         [[DAC 1], [DAC 2], [DAC 3], etc.]
         """
-        for index, _ in enumerate(dac_values[0]):
-            dac_chain_list = [dac[index] for dac in dac_values]
+        for dac_index, _ in enumerate(dac_values[0]):
+            dac_chain_list = [dac[dac_index] for dac in dac_values]
+            # DAC chain is reversed because of the way the shift register works.
+            dac_chain_list.reverse()
             with self._device as spi:
-                for chain_index, chain_value in enumerate(dac_chain_list):
+                for chain_value in dac_chain_list:
                     if chain_value >= 0:
-                        self.write_value_to_spi(spi, chain_value, chain_index + 1)
+                        self.write_value_to_spi(spi, chain_value, dac_index + 1)
+                    else:
+                        self.write_value_to_spi(spi, 0, 0)
 
     def write_chained_dac_value(self, value: list, address: int, chain_length: int):
         """
