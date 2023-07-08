@@ -9,8 +9,8 @@ Introduction
     :alt: Discord
 
 
-.. image:: https://github.com/creativecontrol/CircuitPython_creativecontrol_CircuitPython_LTC166X/workflows/Build%20CI/badge.svg
-    :target: https://github.com/creativecontrol/CircuitPython_creativecontrol_CircuitPython_LTC166X/actions
+.. image:: https://github.com/creativecontrol/creativecontrol_CircuitPython_LTC166X/actions/workflows/build.yml/badge.svg
+    :target: https://github.com/creativecontrol/creativecontrol_CircuitPython_LTC166X/actions/workflows/build.yml
     :alt: Build Status
 
 
