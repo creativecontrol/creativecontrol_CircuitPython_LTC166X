@@ -19,7 +19,7 @@ Introduction
     :alt: Code Style: Black
 =================================
 
-CircuitPython library for control of LTC1665 8-bit and LTC1660 8 channel 10-bit DACs from Linear Technologies.
+CircuitPython library for control of LTC1665 8-bit and LTC1660 10-bit 8 channel DACs from Linear Technologies.
 
 `LTC166X datasheet <https://www.analog.com/media/en/technical-documentation/data-sheets/166560fa.pdf>`_
 
