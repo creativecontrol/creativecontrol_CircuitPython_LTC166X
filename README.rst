@@ -124,7 +124,7 @@ For information on building library documentation, please check out
 Tutorial
 =============
 
-A tutorial on controlling daisy-chained LTC166X DAC can be found on my website `creativecontrol <https://www.creativecontrol.cc/blog/2023/7/7/circuitpython-ltc166x-dac-control-of-daisy-chained-dacs>`_.
+A tutorial on controlling daisy-chained LTC166X DACs can be found on my website `creativecontrol <https://www.creativecontrol.cc/blog/2023/7/7/circuitpython-ltc166x-dac-control-of-daisy-chained-dacs>`_.
 
 Contributing
 ============
